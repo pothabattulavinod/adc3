@@ -26,8 +26,8 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://nw23.seedr.cc/ff_get/5845805527/www.5MovieRulz.clinic%20-%20Coolie%20(2025)%20Telugu%20HQ%20HDRip%20-%20x264%20-%20(AAC%202.0)%20-%20250MB%20-%20ESub.mkv?st=HOkusJQ1QnoC0LfqhfsGIw&e=1766976237"
-          OUTPUT_FOLDER="cooliel"
+          INPUT_URL="https://nw32.seedr.cc/ff_get/5845975852/www.5MovieRulz.clothing%20-%20Telusu%20Kada%20(2025)%20Telugu%20HQ%20HDRip%20-%20x264%20-%20AAC%20-%20250MB%20-%20ESub.mkv?st=A79tPCi5kOBsqkYRJ4HBhw&e=1766976755"
+          OUTPUT_FOLDER="tlskl"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
@@ -68,7 +68,7 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add cooliel
+          git add tlskl
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Add HLS (video copy + Telugu 5.1 audio) [skip ci]"
