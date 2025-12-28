@@ -26,8 +26,8 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://nw21.seedr.cc/ff_get/5845977147/www.5MovieRulz.clothing%20-%20Kantara%20A%20Legend%20Chapter%201%20(2025)%20Telugu HQ%20HDRip%20-%20x264%20-%20(AAC%202.0)%20-%20250MB%20-%20ESub.mkv?st=svzs9uJB6fc8k5uyR0_EaQ&e=1766977191"
-          OUTPUT_FOLDER="kal"
+          INPUT_URL="https://nw20.seedr.cc/ff_get/5845986387/www.5MovieRulz.clothing%20-%20K-Ramp%20(2025)%20Telugu%C2%A0HQ%20HDRip%20-%20x264%20-%20AAC%20-%20250MB%20-%20ESub.mkv?st=8FQ8baH3i7RAQZ-IVP-DxA&e=1766977685"
+          OUTPUT_FOLDER="krl"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
@@ -68,7 +68,7 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add kal
+          git add krl
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Add HLS (video copy + Telugu 5.1 audio) [skip ci]"
