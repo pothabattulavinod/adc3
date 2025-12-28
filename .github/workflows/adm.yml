@@ -26,8 +26,8 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://rd16.seedr.cc/ff_get/5845987494/www.5MovieRulz.clinic%20-%20Mahavatar%20Narsimha%20(2025)%20Telugu%20HQ%20HDRip%20-%20x264%20-%20AAC%20-%20250MB%20-%20ESub.mkv?st=1NTFhGodRjBB8soDTvPH9Q&e=1766978328"
-          OUTPUT_FOLDER="mnl"
+          INPUT_URL="https://rd25.seedr.cc/ff_get/5845987749/www.5MovieRulz.dance%20-%20Kuberaa%20(2025)%20Telugu%20Proper%20HQ%20HDRip%20-%20x264%20-%20(AAC%202.0)%20-%20250MB%20-%20ESub.mkv?st=9X4f705KJev4lCKiAIQd3Q&e=1766978743"
+          OUTPUT_FOLDER="kuberal"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
@@ -68,7 +68,7 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add mnl
+          git add kuberal
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Add HLS (video copy + Telugu 5.1 audio) [skip ci]"
