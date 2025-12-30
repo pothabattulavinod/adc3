@@ -33,33 +33,39 @@ jobs:
 
           echo "🎬 Converting MKV → HLS with Telugu stereo → 5.1 upmix..."
 
-          ffmpeg -y -i "$INPUT_URL" \
+          COMMON_FLAGS="
+            -reconnect 1
+            -reconnect_streamed 1
+            -reconnect_delay_max 5
+            -rw_timeout 30000000
+            -probesize 100M
+            -analyzeduration 100M
+          "
+
+          AUDIO_FILTER="pan=5.1|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0|SL=FL|SR=FR"
+
+          # Try Telugu audio first
+          if ffmpeg $COMMON_FLAGS -i "$INPUT_URL" -map 0:a:m:language:tel -t 1 -f null - 2>/dev/null; then
+            AUDIO_MAP="-map 0:a:m:language:tel"
+            echo "✅ Telugu audio detected"
+          else
+            AUDIO_MAP="-map 0:a:0"
+            echo "⚠️ Telugu audio not found, using first audio stream"
+          fi
+
+          ffmpeg -y \
+            $COMMON_FLAGS \
+            -i "$INPUT_URL" \
             -map 0:v:0 \
-            -map 0:a:m:language:tel \
-            -filter:a \
-              "pan=5.1|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0|SL=FL|SR=FR" \
+            $AUDIO_MAP \
             -c:v copy \
+            -filter:a "$AUDIO_FILTER" \
             -c:a aac -b:a 384k -ac 6 \
             -f hls \
             -hls_time 10 \
             -hls_playlist_type vod \
             -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
-            "$OUTPUT_PATH" || \
-          {
-            echo "⚠️ Telugu audio not found, using first audio stream..."
-            ffmpeg -y -i "$INPUT_URL" \
-              -map 0:v:0 \
-              -map 0:a:0 \
-              -filter:a \
-                "pan=5.1|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0|SL=FL|SR=FR" \
-              -c:v copy \
-              -c:a aac -b:a 384k -ac 6 \
-              -f hls \
-              -hls_time 10 \
-              -hls_playlist_type vod \
-              -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
-              "$OUTPUT_PATH"
-          }
+            "$OUTPUT_PATH"
 
           echo "✅ HLS conversion completed: $OUTPUT_PATH"
 
@@ -82,3 +88,4 @@ jobs:
           git remote remove origin || true
           git remote add origin https://x-access-token:${GH_PAT}@github.com/pothabattulavinod/adc3.git
           git push origin HEAD:main
+
