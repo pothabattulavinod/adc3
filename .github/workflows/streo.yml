@@ -1,5 +1,5 @@
 
-name: MKV to HLS (Compressed + Telugu 5.1)
+name: MKV to HLS CMAF (.m4s) – Optimized (Fast)
 
 on:
   workflow_dispatch:
@@ -22,8 +22,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      # 3️⃣ Convert MKV to HLS (Compressed Video + Telugu 5.1 Audio)
-      - name: Convert MKV to HLS
+      # 3️⃣ Convert MKV → HLS CMAF (.m4s)
+      - name: Convert MKV to HLS CMAF (.m4s)
         run: |
           set -e
 
@@ -33,33 +33,35 @@ jobs:
 
           mkdir -p "$OUTPUT_FOLDER"
 
-          echo "🎬 Encoding video (compressed) + Telugu 5.1 audio → HLS"
+          echo "🎬 Encoding CMAF HLS (.m4s) with Telugu 5.1 audio (FAST preset)"
 
           ffmpeg -y -i "$INPUT_URL" \
             -map 0:v:0 \
             -map 0:a:m:language:tel \
             -vf "scale=960:-2" \
             -c:v libx264 \
-            -preset ultrafast \
-            -crf 23 \
+            -preset fast \
+            -crf 24 \
             -profile:v high \
             -pix_fmt yuv420p \
+            -g 48 \
+            -keyint_min 48 \
+            -sc_threshold 0 \
             -c:a aac \
             -b:a 256k \
             -ac 6 \
-            -movflags +faststart \
             -f hls \
-            -hls_time 10 \
+            -hls_time 6 \
             -hls_playlist_type vod \
-            -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
+            -hls_segment_type fmp4 \
+            -hls_fmp4_init_filename init.mp4 \
+            -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.m4s" \
             "$OUTPUT_PATH"
 
-          echo "✅ HLS created at $OUTPUT_PATH"
-
-          echo "📦 Output size:"
+          echo "✅ CMAF HLS created"
           du -sh "$OUTPUT_FOLDER"
 
-      # 4️⃣ Commit and push results
+      # 4️⃣ Commit and push output
       - name: Commit and push HLS output
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
@@ -70,7 +72,7 @@ jobs:
           git add og
 
           if ! git diff-index --quiet HEAD; then
-            git commit -m "Add compressed HLS (Telugu 5.1, <480MB) [skip ci]"
+            git commit -m "Add CMAF HLS (.m4s) fast preset [skip ci]"
           else
             echo "No new files to commit."
           fi
