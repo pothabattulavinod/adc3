@@ -1,5 +1,5 @@
 
-name: MKV to HWLS (ULTRAFAST x264 ≤480MB)
+name: MKV to HLES (HEVC ≤480MB Fast Two-Pass)
 
 on:
   workflow_dispatch:
@@ -16,14 +16,14 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      # 2️⃣ Install ffmpeg
+      # 2️⃣ Install ffmpeg and bc
       - name: Install ffmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get install -y ffmpeg bc wget
 
-      # 3️⃣ Convert MKV to HLS (ULTRAFAST)
-      - name: Convert MKV to HLS (ULTRAFAST)
+      # 3️⃣ Convert MKV to HLS with size target using two-pass
+      - name: Convert MKV to HLS (HEVC Two-Pass)
         run: |
           set -e
 
@@ -31,31 +31,52 @@ jobs:
           OUTPUT_FOLDER="og"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
+          TEMP_INPUT="$OUTPUT_FOLDER/input.mkv"
 
-          echo "🚀 ULTRAFAST encoding started..."
+          # Target size in MB
+          TARGET_MB=480
 
-          ffmpeg -y -i "$INPUT_URL" \
+          echo "🚀 Downloading input..."
+          wget -O "$TEMP_INPUT" "$INPUT_URL"
+
+          echo "🚀 Getting video duration..."
+          DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$TEMP_INPUT")
+          echo "Duration: $DURATION seconds"
+
+          # Calculate total target bitrate in kbps (including audio)
+          TOTAL_KBPS=$(echo "scale=0; $TARGET_MB*8192/$DURATION" | bc)
+          AUDIO_KBPS=160
+          VIDEO_KBPS=$(echo "$TOTAL_KBPS - $AUDIO_KBPS" | bc)
+          echo "Target video bitrate: $VIDEO_KBPS kbps, audio: $AUDIO_KBPS kbps"
+
+          echo "🚀 Starting two-pass HEVC encoding (preset: medium)..."
+
+          # 1️⃣ First pass
+          ffmpeg -y -i "$TEMP_INPUT" \
+            -map 0:v:0 \
+            -c:v libx265 \
+            -b:v "${VIDEO_KBPS}k" \
+            -preset medium \
+            -x265-params pass=1 \
+            -an -f mp4 /dev/null
+
+          # 2️⃣ Second pass
+          ffmpeg -y -i "$TEMP_INPUT" \
             -map 0:v:0 \
             -map 0:a:0 \
-            -c:v libx264 \
-            -preset ultrafast \
-            -tune zerolatency \
-            -b:v 900k \
-            -maxrate 900k \
-            -bufsize 1800k \
-            -profile:v main \
-            -pix_fmt yuv420p \
+            -c:v libx265 \
+            -b:v "${VIDEO_KBPS}k" \
+            -preset medium \
+            -x265-params pass=2 \
+            -c:a aac -b:a ${AUDIO_KBPS}k -ac 2 \
             -movflags +faststart \
-            -c:a aac \
-            -b:a 128k \
-            -ac 2 \
             -f hls \
             -hls_time 10 \
             -hls_playlist_type vod \
             -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
             "$OUTPUT_PATH"
 
-          echo "✅ ULTRAFAST conversion finished."
+          echo "✅ HEVC two-pass conversion finished. File size should be ≤$TARGET_MB MB"
 
       # 4️⃣ Commit and push results
       - name: Commit and push HLS output
@@ -68,7 +89,7 @@ jobs:
           git add og
 
           if ! git diff-index --quiet HEAD; then
-            git commit -m "Add ULTRAFAST x264 HLS ≤480MB (720p) [skip ci]"
+            git commit -m "Add HEVC HLS ≤480MB (720p, two-pass medium preset) [skip ci]"
           else
             echo "No new files to commit."
           fi
