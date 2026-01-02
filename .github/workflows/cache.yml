@@ -1,41 +1,33 @@
-name: Clear HLS / CMAF Output
+
+name: Clear Runner Data
 
 on:
   workflow_dispatch:
 
 jobs:
-  clean:
+  clean_runner:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository (optional, if needed)
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2️⃣ Remove output folder
-      - name: Remove HLS/CMAF output
+      - name: Clear runner temp folder
         run: |
-          OUTPUT_FOLDER="og"
-          if [ -d "$OUTPUT_FOLDER" ]; then
-            echo "🧹 Removing existing HLS output folder: $OUTPUT_FOLDER"
-            rm -rf "$OUTPUT_FOLDER"
-          else
-            echo "Nothing to clean. Folder does not exist."
-          fi
+          echo "🧹 Cleaning RUNNER_TEMP folder"
+          sudo rm -rf "$RUNNER_TEMP/*"
+          echo "✅ RUNNER_TEMP cleared"
 
-      # 3️⃣ Clear temporary files (optional)
-      - name: Clear temporary system cache
+      - name: Clear runner tools folder
         run: |
-          echo "🧹 Cleaning /tmp folder (runner temporary files)"
+          echo "🧹 Cleaning RUNNER_TOOL_CACHE folder"
+          sudo rm -rf "$RUNNER_TOOL_CACHE/*"
+          echo "✅ RUNNER_TOOL_CACHE cleared"
+
+      - name: Clear /tmp folder
+        run: |
+          echo "🧹 Cleaning /tmp folder"
           sudo rm -rf /tmp/*
           df -h /tmp
+          echo "✅ /tmp cleared"
 
-      # 4️⃣ Optional: Confirm cleanup
       - name: Confirm cleanup
         run: |
-          OUTPUT_FOLDER="og"
-          if [ ! -d "$OUTPUT_FOLDER" ]; then
-            echo "✅ HLS output folder successfully cleared."
-          else
-            echo "⚠️ HLS output folder still exists."
-          fi
+          echo "✅ Runner temp and tool cache folders cleared."
