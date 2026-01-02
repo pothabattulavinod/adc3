@@ -1,5 +1,5 @@
 
-name: MKV to HLS (Video Copy + Telugu 5.1 Audio)
+name: MKV to HELS (HEVC x265 ≤480MB Locked)
 
 on:
   workflow_dispatch:
@@ -22,49 +22,64 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      # 3️⃣ Convert MKV to HLS (Video Copy + Stereo → 5.1)
-      - name: Convert MKV to HLS
+      # 3️⃣ Convert MKV to HLS (HEVC x265, size locked)
+      - name: Convert MKV to HLS (HEVC x265 ≤480MB)
         run: |
           set -e
 
-          INPUT_URL="https://sujanch-stream.koyeb.app/115581?hash=AgADIg"
-          OUTPUT_FOLDER="mca"
+          INPUT_URL="https://cdn.telugudub.store/They_Call_Him_OG_%282025%29_Telugu_HD_720p.mkv"
+          OUTPUT_FOLDER="og"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
-          echo "🎬 Converting MKV → HLS (Telugu stereo → 5.1)..."
+          echo "🎬 Converting to HEVC with strict size cap (≤480MB)..."
 
           ffmpeg -y -i "$INPUT_URL" \
+            -filter_complex "[0:a:m:language:tel]pan=5.1(aout)" \
             -map 0:v:0 \
-            -map 0:a:m:language:tel \
-            -filter:a "pan=5.1|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0|SL=0.7*FL|SR=0.7*FR" \
-            -c:v copy \
-            -c:a aac -profile:a aac_low -b:a 384k -ac 6 \
-            -metadata:s:a:0 language=tel \
+            -map "[aout]" \
+            -c:v libx265 \
+            -preset slow \
+            -b:v 900k \
+            -maxrate 900k \
+            -bufsize 1800k \
+            -profile:v main \
+            -pix_fmt yuv420p \
+            -tag:v hvc1 \
+            -x265-params level=4.1 \
+            -c:a aac \
+            -b:a 256k \
+            -ac 6 \
             -f hls \
             -hls_time 10 \
             -hls_playlist_type vod \
-            -hls_flags independent_segments \
             -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
             "$OUTPUT_PATH" || \
           {
-            echo "⚠️ Telugu audio not found, using first audio stream..."
+            echo "⚠️ Telugu audio not found, falling back to first audio stream..."
             ffmpeg -y -i "$INPUT_URL" \
               -map 0:v:0 \
               -map 0:a:0 \
-              -filter:a "pan=5.1|FL=FL|FR=FR|FC=0.5*FL+0.5*FR|LFE=0|SL=0.7*FL|SR=0.7*FR" \
-              -c:v copy \
-              -c:a aac -profile:a aac_low -b:a 384k -ac 6 \
-              -metadata:s:a:0 language=tel \
+              -c:v libx265 \
+              -preset slow \
+              -b:v 900k \
+              -maxrate 900k \
+              -bufsize 1800k \
+              -profile:v main \
+              -pix_fmt yuv420p \
+              -tag:v hvc1 \
+              -x265-params level=4.1 \
+              -c:a aac \
+              -b:a 256k \
+              -ac 6 \
               -f hls \
               -hls_time 10 \
               -hls_playlist_type vod \
-              -hls_flags independent_segments \
               -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
               "$OUTPUT_PATH"
           }
 
-          echo "✅ HLS conversion completed: $OUTPUT_PATH"
+          echo "✅ Conversion finished (size locked)."
 
       # 4️⃣ Commit and push results
       - name: Commit and push HLS output
@@ -74,10 +89,10 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add mca
+          git add og
 
           if ! git diff-index --quiet HEAD; then
-            git commit -m "Add HLS (video copy + Telugu stereo → 5.1) [skip ci]"
+            git commit -m "Add HEVC HLS ≤480MB (720p, Telugu 5.1) [skip ci]"
           else
             echo "No new files to commit."
           fi
