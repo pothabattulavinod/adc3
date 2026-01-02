@@ -1,0 +1,41 @@
+name: Clear HLS / CMAF Output
+
+on:
+  workflow_dispatch:
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository (optional, if needed)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Remove output folder
+      - name: Remove HLS/CMAF output
+        run: |
+          OUTPUT_FOLDER="og"
+          if [ -d "$OUTPUT_FOLDER" ]; then
+            echo "🧹 Removing existing HLS output folder: $OUTPUT_FOLDER"
+            rm -rf "$OUTPUT_FOLDER"
+          else
+            echo "Nothing to clean. Folder does not exist."
+          fi
+
+      # 3️⃣ Clear temporary files (optional)
+      - name: Clear temporary system cache
+        run: |
+          echo "🧹 Cleaning /tmp folder (runner temporary files)"
+          sudo rm -rf /tmp/*
+          df -h /tmp
+
+      # 4️⃣ Optional: Confirm cleanup
+      - name: Confirm cleanup
+        run: |
+          OUTPUT_FOLDER="og"
+          if [ ! -d "$OUTPUT_FOLDER" ]; then
+            echo "✅ HLS output folder successfully cleared."
+          else
+            echo "⚠️ HLS output folder still exists."
+          fi
