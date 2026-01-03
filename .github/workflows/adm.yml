@@ -26,8 +26,8 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://nw19.seedr.cc/ff_get/5848594044/www.1TamilMV.LC%20-%20Beauty%20(2025)%20Telugu%20HQ%20HDRip%20-%20720p%20-%20x264%20-%20(DD_5.1%20-%20192Kbps%20_%20AAC%202.0)%20-%201.4GB%20-%20ESub.mkv?st=UROTryFlHMO7C2tac18t3A&e=1767408193"
-          OUTPUT_FOLDER="beauty"
+          INPUT_URL="https://cdn.telugudub.store/Idli_Kottu_%282025%29_Telugu_720p.mkv"
+          OUTPUT_FOLDER="idli"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
@@ -68,7 +68,7 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add beauty
+          git add idli
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Add HLS (video copy + Telugu 5.1 audio) [skip ci]"
